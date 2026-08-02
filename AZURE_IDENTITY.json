@@ -7,7 +7,7 @@
   "p2p_port": 29825,
   "rpc_port": 49825,
   "block_time_sec": 90,
-  "block_reward": 100,
+  "block_reward": 500,
   "premine": 5000000,
   "datadir_name": ".azure",
   "pow_algorithms": [
@@ -26,9 +26,21 @@
   "binary": "/root/azure-chain/bin/azured",
   "datadir": "/root/azure-chain/bootstrap-source",
   "genesis": "f5e7c12a9a232c07a30835c7934db52ce7372dae41fbe62eedcb36aa5bed87e0",
-  "updated_utc": "2026-07-29T02:27:44Z",
+  "updated_utc": "2026-08-02T04:36:06Z",
   "memory_rss_note": "~40 MiB pruned seed",
   "premine_address": "AHn1Kf6kkYGua1cETaqtug2ukEd4iqURHM",
   "premine_spendable": true,
-  "auxpow_chain_id": 1901
+  "auxpow_chain_id": 1901,
+  "issuance": {
+    "schedule": "izal_stepped_v1",
+    "blocks_per_year": 350640,
+    "years_0_3": 500,
+    "years_3_6": 250,
+    "years_6_9": 125,
+    "years_9_12": 62.5,
+    "years_12_15": 31.25,
+    "tail_after_year_15": 15,
+    "flag_day_note": "Hard break vs legacy at first POST_ICO height (~9910). Upgrade before then."
+  },
+  "client_version": "0.7.7"
 }

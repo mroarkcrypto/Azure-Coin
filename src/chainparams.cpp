@@ -208,14 +208,13 @@ public:
         strNetworkID = CBaseChainParams::MAIN;
         consensus.signet_blocks = false;
         consensus.signet_challenge.clear();
-        consensus.nSubsidyHalvingInterval = 9000; // legacy field; stepped schedule uses nBlocksPerYear
-        consensus.initialSubsidy = 100 * COIN; // AZURE era-0 reward
-        // Jul 2026 policy: no mid-year-1 jump at 12000 — full year at 100, then Y2–3 at 1000.
-        consensus.nIncreasedSubsidyHeight = 0; // AZURE: no mid-chain subsidy jump // AZURE: no mid-chain subsidy jump
+        consensus.nSubsidyHalvingInterval = 9000; // legacy field only if nBlocksPerYear==0
+        consensus.initialSubsidy = 500 * COIN; // AZURE Izal years 0–3 base
+        consensus.nIncreasedSubsidyHeight = 0; // no mid-chain jump
         consensus.increasedInitialSubsidy = 0;
-        // ~80 s mean block time → ~394470 blocks/calendar year
-        consensus.nBlocksPerYear = 394470;
-        consensus.qseBaseSubsidy = 200 * COIN; // QUASAR Security Emission tail (Y8+)
+        // ~90 s mean block time → round(365.25*86400/90) = 350640 blocks/year
+        consensus.nBlocksPerYear = 350640;
+        consensus.qseBaseSubsidy = 15 * COIN; // permanent tail after year 15
         consensus.BIP16Height = 0;
         consensus.BIP34Height = 1;
         consensus.BIP65Height = 0;

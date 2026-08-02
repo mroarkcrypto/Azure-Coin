@@ -1230,45 +1230,69 @@ static CAmount GetEffectiveInitialSubsidy(int nHeight, const Consensus::Params& 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
     /* Special rule:  Before the post-ICO fork, the block reward is always set
-       to 1 ROD except for regtest net.  (The latter exception is so that
+       to 1 coin except for regtest net.  (The latter exception is so that
        we do not have to update many magic values in tests.)  */
     if (!consensusParams.fPowNoRetargeting
           && !consensusParams.rules->ForkInEffect (Consensus::Fork::POST_ICO,
                                                    nHeight))
         return COIN;
 
+    /*
+     * AZURE SpeX / Izal issuance (Aug 2026) when nBlocksPerYear > 0:
+     *   ~90s blocks → nBlocksPerYear ≈ 350640
+     *   Years 0–3:  500
+     *   Years 3–6:  250
+     *   Years 6–9:  125
+     *   Years 9–12: 62.5
+     *   Years 12–15: 31.25
+     *   After year 15: qseBaseSubsidy (15) permanent tail
+     * Hard break vs legacy 100>>halvings path: first post-ICO height (POST_ICO).
+     * Upgrade all nodes before POST_ICO (~9910) / flag checklist.
+     */
+    if (consensusParams.nBlocksPerYear > 0) {
+        const int bpy = consensusParams.nBlocksPerYear;
+        const int yearIndex = nHeight / bpy; /* 0-based calendar year of issuance */
+        if (yearIndex <= 2) {
+            return 500 * COIN;
+        }
+        if (yearIndex <= 5) {
+            return 250 * COIN;
+        }
+        if (yearIndex <= 8) {
+            return 125 * COIN;
+        }
+        if (yearIndex <= 11) {
+            /* 62.5 AZURE */
+            return (625 * COIN) / 10;
+        }
+        if (yearIndex <= 14) {
+            /* 31.25 AZURE */
+            return (3125 * COIN) / 100;
+        }
+        return consensusParams.qseBaseSubsidy > 0
+                   ? consensusParams.qseBaseSubsidy
+                   : 15 * COIN;
+    }
+
+    /* Legacy path (nBlocksPerYear == 0) */
     const CAmount baseInitial = GetEffectiveInitialSubsidy(nHeight, consensusParams);
 
     int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
-    // Force block reward to zero when right shift is undefined.
-
     if (halvings >= 64)
         return 0;
-/*
-    CAmount nSubsidy = consensusParams.initialSubsidy;
-    // Subsidy is cut in half every 2,100,000 blocks which will occur approximately every 4 years.
-    nSubsidy >>= halvings;
-    return nSubsidy;
-*/
 
     CAmount nSubsidy = 0;
-//    halvings = round(halvings);
-    if (halvings > 4) { 
-        // calculate coin inflation for this halving
+    if (halvings > 4) {
         CAmount inflateCoins = round(1833823998 * (pow(1.02956, halvings - 3) - pow(1.02956, halvings - 4)));
-        // subsidy is inflateCoins / 210000 * COIN
         nSubsidy = ((int)round((inflateCoins / 1054080.0) * 100)) * (COIN / 100);
-        // Bloodstone relaunch (initialSubsidy < 800 ROD): scale inflation-era
-        // subsidies so era 5+ does not jump above the legacy 800-ROD curve.
         const CAmount legacyInitial = 800 * COIN;
         if (baseInitial > 0 && baseInitial != legacyInitial) {
             nSubsidy = (CAmount)((int64_t)nSubsidy * (int64_t)baseInitial / (int64_t)legacyInitial);
         }
-    } else { 
+    } else {
         nSubsidy = baseInitial;
-        // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-        nSubsidy >>= halvings; 
-        }
+        nSubsidy >>= halvings;
+    }
     return nSubsidy;
 //    halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
         
